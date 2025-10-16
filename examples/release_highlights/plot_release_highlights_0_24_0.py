@@ -1,4 +1,4 @@
-# flake8: noqa
+# ruff: noqa: CPY001, E501
 """
 ========================================
 Release Highlights for scikit-learn 0.24
@@ -9,7 +9,7 @@ Release Highlights for scikit-learn 0.24
 We are pleased to announce the release of scikit-learn 0.24! Many bug fixes
 and improvements were added, as well as some new key features. We detail
 below a few of the major features of this release. **For an exhaustive list of
-all the changes**, please refer to the :ref:`release notes <changes_0_24>`.
+all the changes**, please refer to the :ref:`release notes <release_notes_0_24>`.
 
 To install the latest version (with pip)::
 
@@ -18,6 +18,7 @@ To install the latest version (with pip)::
 or with conda::
 
     conda install -c conda-forge scikit-learn
+
 """
 
 ##############################################################################
@@ -43,17 +44,18 @@ or with conda::
 # Read more in the :ref:`User Guide <successive_halving_user_guide>` (note:
 # the Successive Halving estimators are still :term:`experimental
 # <experimental>`).
-# 
+#
 # .. figure:: ../model_selection/images/sphx_glr_plot_successive_halving_iterations_001.png
 #   :target: ../model_selection/plot_successive_halving_iterations.html
 #   :align: center
 
 import numpy as np
 from scipy.stats import randint
-from sklearn.experimental import enable_halving_search_cv  # noqa
-from sklearn.model_selection import HalvingRandomSearchCV
-from sklearn.ensemble import RandomForestClassifier
+
 from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.experimental import enable_halving_search_cv  # noqa: F401
+from sklearn.model_selection import HalvingRandomSearchCV
 
 rng = np.random.RandomState(0)
 
@@ -61,14 +63,17 @@ X, y = make_classification(n_samples=700, random_state=rng)
 
 clf = RandomForestClassifier(n_estimators=10, random_state=rng)
 
-param_dist = {"max_depth": [3, None],
-              "max_features": randint(1, 11),
-              "min_samples_split": randint(2, 11),
-              "bootstrap": [True, False],
-              "criterion": ["gini", "entropy"]}
+param_dist = {
+    "max_depth": [3, None],
+    "max_features": randint(1, 11),
+    "min_samples_split": randint(2, 11),
+    "bootstrap": [True, False],
+    "criterion": ["gini", "entropy"],
+}
 
-rsh = HalvingRandomSearchCV(estimator=clf, param_distributions=param_dist,
-                            factor=2, random_state=rng)
+rsh = HalvingRandomSearchCV(
+    estimator=clf, param_distributions=param_dist, factor=2, random_state=rng
+)
 rsh.fit(X, y)
 rsh.best_params_
 
@@ -114,6 +119,7 @@ rsh.best_params_
 # Read more in the :ref:`User guide <self_training>`.
 
 import numpy as np
+
 from sklearn import datasets
 from sklearn.semi_supervised import SelfTrainingClassifier
 from sklearn.svm import SVC
@@ -136,17 +142,19 @@ self_training_model.fit(iris.data, iris.target)
 # (backward selection), based on a cross-validated score maximization.
 # See the :ref:`User Guide <sequential_feature_selection>`.
 
+from sklearn.datasets import load_iris
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.datasets import load_iris
 
 X, y = load_iris(return_X_y=True, as_frame=True)
 feature_names = X.columns
 knn = KNeighborsClassifier(n_neighbors=3)
 sfs = SequentialFeatureSelector(knn, n_features_to_select=2)
 sfs.fit(X, y)
-print("Features selected by forward sequential selection: "
-      f"{feature_names[sfs.get_support()].tolist()}")
+print(
+    "Features selected by forward sequential selection: "
+    f"{feature_names[sfs.get_support()].tolist()}"
+)
 
 ##############################################################################
 # New PolynomialCountSketch kernel approximation function
@@ -157,26 +165,27 @@ print("Features selected by forward sequential selection: "
 # :class:`~sklearn.preprocessing.PolynomialFeatures`.
 
 from sklearn.datasets import fetch_covtype
-from sklearn.pipeline import make_pipeline
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.kernel_approximation import PolynomialCountSketch
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import MinMaxScaler
 
 X, y = fetch_covtype(return_X_y=True)
-pipe = make_pipeline(MinMaxScaler(),
-                     PolynomialCountSketch(degree=2, n_components=300),
-                     LogisticRegression(max_iter=1000))
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=5000,
-                                                    test_size=10000,
-                                                    random_state=42)
+pipe = make_pipeline(
+    MinMaxScaler(),
+    PolynomialCountSketch(degree=2, n_components=300),
+    LogisticRegression(max_iter=1000),
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, train_size=5000, test_size=10000, random_state=42
+)
 pipe.fit(X_train, y_train).score(X_test, y_test)
 
 ##############################################################################
 # For comparison, here is the score of a linear baseline for the same data:
 
-linear_baseline = make_pipeline(MinMaxScaler(),
-                                LogisticRegression(max_iter=1000))
+linear_baseline = make_pipeline(MinMaxScaler(), LogisticRegression(max_iter=1000))
 linear_baseline.fit(X_train, y_train).score(X_test, y_test)
 
 ##############################################################################
@@ -187,21 +196,33 @@ linear_baseline.fit(X_train, y_train).score(X_test, y_test)
 # prediction on a feature for each sample separately, with one line per sample.
 # See the :ref:`User Guide <individual_conditional>`
 
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.datasets import fetch_california_housing
-from sklearn.inspection import plot_partial_dependence
+from sklearn.ensemble import RandomForestRegressor
+
+# from sklearn.inspection import plot_partial_dependence
+from sklearn.inspection import PartialDependenceDisplay
 
 X, y = fetch_california_housing(return_X_y=True, as_frame=True)
-features = ['MedInc', 'AveOccup', 'HouseAge', 'AveRooms']
+features = ["MedInc", "AveOccup", "HouseAge", "AveRooms"]
 est = RandomForestRegressor(n_estimators=10)
 est.fit(X, y)
-display = plot_partial_dependence(
-       est, X, features, kind="individual", subsample=50,
-       n_jobs=3, grid_resolution=20, random_state=0
+
+# plot_partial_dependence has been removed in version 1.2. From 1.2, use
+# PartialDependenceDisplay instead.
+# display = plot_partial_dependence(
+display = PartialDependenceDisplay.from_estimator(
+    est,
+    X,
+    features,
+    kind="individual",
+    subsample=50,
+    n_jobs=3,
+    grid_resolution=20,
+    random_state=0,
 )
 display.figure_.suptitle(
-    'Partial dependence of house value on non-location features\n'
-    'for the California housing dataset, with BayesianRidge'
+    "Partial dependence of house value on non-location features\n"
+    "for the California housing dataset, with BayesianRidge"
 )
 display.figure_.subplots_adjust(hspace=0.3)
 
@@ -213,9 +234,10 @@ display.figure_.subplots_adjust(hspace=0.3)
 # splitting criterion. Setting `criterion="poisson"` might be a good choice
 # if your target is a count or a frequency.
 
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import train_test_split
 import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeRegressor
 
 n_samples, n_features = 1000, 20
 rng = np.random.RandomState(0)
@@ -223,7 +245,7 @@ X = rng.randn(n_samples, n_features)
 # positive integer target correlated with X[:, 5] with many zeros:
 y = rng.poisson(lam=np.exp(X[:, 5]) / 2)
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=rng)
-regressor = DecisionTreeRegressor(criterion='poisson', random_state=0)
+regressor = DecisionTreeRegressor(criterion="poisson", random_state=0)
 regressor.fit(X_train, y_train)
 
 ##############################################################################
