@@ -1804,7 +1804,9 @@ def d2_pinball_score(
     >>> grid.best_params_
     {'fit_intercept': True}
     """
-    xp, _, _ = get_namespace_and_device(y_true, y_pred, sample_weight, multioutput)
+    xp, _, _device = get_namespace_and_device(
+        y_true, y_pred, sample_weight, multioutput
+    )
     _, y_true, y_pred, sample_weight, multioutput = _check_reg_targets(
         y_true, y_pred, sample_weight, multioutput
     )
@@ -1844,7 +1846,9 @@ def d2_pinball_score(
     nonzero_denominator = denominator != 0
     valid_score = nonzero_numerator & nonzero_denominator
     output_scores = xp.ones(
-        y_true.shape[1], dtype=_find_matching_floating_dtype(numerator, denominator)
+        y_true.shape[1],
+        dtype=_find_matching_floating_dtype(numerator, denominator, xp=xp),
+        device=_device,
     )
 
     output_scores[valid_score] = 1 - (numerator[valid_score] / denominator[valid_score])
