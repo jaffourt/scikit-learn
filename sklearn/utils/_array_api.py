@@ -710,6 +710,23 @@ def _median(x, axis=None, keepdims=False, xp=None):
     return xp.asarray(numpy.median(x_np, axis=axis, keepdims=keepdims), device=device)
 
 
+def _quantile(x, q, axis=None, keepdims=False, xp=None):
+    # XXX: `quantile` is not included in the array API spec, but is implemented
+    # in most array libraries
+    xp, _, device = get_namespace_and_device(x, xp=xp)
+
+    if hasattr(xp, "quantile"):
+        return xp.quantile(x, q=q, axis=axis, keepdims=keepdims)
+
+    # Intended mostly for array-api-strict (which has no "quantile", as per the spec)
+    # as `_convert_to_numpy` does not necessarily work for all array types.
+    # See https://github.com/data-apis/array-api/issues/795 for discussion
+    x_np = _convert_to_numpy(x, xp=xp)
+    return xp.asarray(
+        numpy.quantile(x_np, q=q, axis=axis, keepdims=keepdims), device=device
+    )
+
+
 def _xlogy(x, y, xp=None):
     # TODO: Remove this once https://github.com/scipy/scipy/issues/21736 is fixed
     xp, _, device_ = get_namespace_and_device(x, y, xp=xp)

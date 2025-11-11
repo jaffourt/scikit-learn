@@ -20,6 +20,7 @@ from sklearn.utils._array_api import (
     _average,
     _find_matching_floating_dtype,
     _median,
+    _quantile,
     get_namespace,
     get_namespace_and_device,
     size,
@@ -1803,6 +1804,7 @@ def d2_pinball_score(
     >>> grid.best_params_
     {'fit_intercept': True}
     """
+    xp, _, _ = get_namespace_and_device(y_true, y_pred, sample_weight, multioutput)
     _, y_true, y_pred, sample_weight, multioutput = _check_reg_targets(
         y_true, y_pred, sample_weight, multioutput
     )
@@ -1821,15 +1823,13 @@ def d2_pinball_score(
     )
 
     if sample_weight is None:
-        y_quantile = np.tile(
-            np.percentile(y_true, q=alpha * 100, axis=0), (len(y_true), 1)
-        )
+        y_quantile = xp.tile(_quantile(y_true, q=alpha, axis=0), (y_true.shape[0], 1))
     else:
-        y_quantile = np.tile(
+        y_quantile = xp.tile(
             _weighted_percentile(
                 y_true, sample_weight=sample_weight, percentile_rank=alpha * 100
             ),
-            (len(y_true), 1),
+            (y_true.shape[0], 1),
         )
 
     denominator = mean_pinball_loss(
@@ -1843,7 +1843,7 @@ def d2_pinball_score(
     nonzero_numerator = numerator != 0
     nonzero_denominator = denominator != 0
     valid_score = nonzero_numerator & nonzero_denominator
-    output_scores = np.ones(y_true.shape[1])
+    output_scores = xp.ones(y_true.shape[1])
 
     output_scores[valid_score] = 1 - (numerator[valid_score] / denominator[valid_score])
     output_scores[nonzero_numerator & ~nonzero_denominator] = 0.0
@@ -1858,7 +1858,7 @@ def d2_pinball_score(
     else:
         avg_weights = multioutput
 
-    return float(np.average(output_scores, weights=avg_weights))
+    return float(_average(output_scores, weights=avg_weights))
 
 
 @validate_params(
