@@ -1843,7 +1843,9 @@ def d2_pinball_score(
     nonzero_numerator = numerator != 0
     nonzero_denominator = denominator != 0
     valid_score = nonzero_numerator & nonzero_denominator
-    output_scores = xp.ones(y_true.shape[1])
+    output_scores = xp.ones(
+        y_true.shape[1], dtype=_find_matching_floating_dtype(numerator, denominator)
+    )
 
     output_scores[valid_score] = 1 - (numerator[valid_score] / denominator[valid_score])
     output_scores[nonzero_numerator & ~nonzero_denominator] = 0.0
